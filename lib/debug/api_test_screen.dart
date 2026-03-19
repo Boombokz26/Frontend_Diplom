@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-
+import '../../services/api_client.dart';
 class ApiTestScreen extends StatefulWidget {
   const ApiTestScreen({super.key});
 
@@ -13,7 +13,7 @@ class _ApiTestScreenState extends State<ApiTestScreen> {
 
   Future<void> testBackend() async {
     try {
-      final dio = Dio();
+      final dio = ApiClient().dio;
       final response =
       await dio.get('http://10.0.2.2:8000/api/sessions/');
       setState(() {

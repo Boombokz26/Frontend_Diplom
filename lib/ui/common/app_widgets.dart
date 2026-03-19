@@ -125,6 +125,10 @@ class BottomNav extends StatelessWidget {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.fitness_center_rounded), label: 'Workouts'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.sports_gymnastics),
+            label: "Exercises",
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Stats'),
           BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
@@ -143,6 +147,85 @@ class VLine extends StatelessWidget {
       height: 48,
       margin: const EdgeInsets.symmetric(horizontal: 10),
       color: const Color(0xFFE5E7EB),
+    );
+  }
+}
+class SettingsTile extends StatelessWidget {
+
+  final Color iconBg;
+  final Color iconColor;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+
+  const SettingsTile({
+    super.key,
+    required this.iconBg,
+    required this.iconColor,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return CardShell(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Row(
+          children: [
+
+            CircleIcon(
+              bg: iconBg,
+              icon: icon,
+              iconColor: iconColor,
+              size: 56,
+            ),
+
+            const SizedBox(width: 14),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 30,
+              color: Color(0xFF9CA3AF),
+            ),
+
+          ],
+        ),
+      ),
     );
   }
 }
