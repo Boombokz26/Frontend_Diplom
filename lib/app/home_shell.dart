@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../ui/common/app_widgets.dart';
 import '../ui/screens/home_dashboard_screen.dart';
 import '../ui/screens/plans/workouts_screen.dart';
-import '../ui/screens/stats_screen.dart';
+import '../ui/screens/Statistics/stats_screen.dart';
 import '../ui/screens/profile_screen.dart';
 import '../ui/screens/Exercise/exercises_screen.dart';
+import '../ui/screens/history_screen.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -19,10 +20,10 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final pages = const [
-      HomeDashboardScreen(),
       WorkoutsScreen(),
+      HistoryScreen(),
       ExercisesScreen(),
-      StatsScreen(),
+      AnalyticsScreen(),
       ProfileScreen(),
     ];
 

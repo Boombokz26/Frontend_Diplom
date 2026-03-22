@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/workout_service.dart';
 import '../Exercise/exercise_selection_screen.dart';
+import 'active_workout_screen.dart';
 
 class WorkoutPlanDetailsScreen extends StatefulWidget {
   final int planId;
@@ -241,7 +242,7 @@ class _WorkoutPlanDetailsScreenState
           : Column(
         children: [
 
-          /// HEADER
+
           Container(
 
             padding: const EdgeInsets.fromLTRB(24,60,24,28),
@@ -312,7 +313,48 @@ class _WorkoutPlanDetailsScreenState
                     ),
 
                   ],
-                )
+                ),
+                const SizedBox(height:20),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+
+                    onPressed: () async {
+
+                      final sessionId =
+                      await workoutService.startWorkout(widget.planId);
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ActiveWorkoutScreen(
+                            sessionId: sessionId,
+                          ),
+                        ),
+                      );
+
+                    },
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF4F46E5),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+
+                    child: const Text(
+                      "Start Workout",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
 
               ],
             ),

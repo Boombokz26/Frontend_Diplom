@@ -25,7 +25,7 @@ class ApiClient {
         onRequest: (options, handler) async {
           final token = await TokenStorage.getToken();
 
-          print("TOKEN IN INTERCEPTOR: $token"); // 🔥 лог
+          print("TOKEN IN INTERCEPTOR: $token");
 
           if (token != null) {
             options.headers["Authorization"] = "Bearer $token";

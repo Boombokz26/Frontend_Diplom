@@ -16,6 +16,8 @@ class HomeDashboardScreen extends StatelessWidget {
         SizedBox(height: 18),
         _Last7DaysCard(),
         SizedBox(height: 18),
+        _RecentWorkoutsCard(),
+        SizedBox(height: 18),
         Row(
           children: [
             Expanded(
@@ -236,6 +238,99 @@ class _Last7DaysCard extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentWorkoutsCard extends StatelessWidget {
+  const _RecentWorkoutsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final workouts = [
+      {"name": "Chest Workout", "date": "Today", "duration": "45 min"},
+      {"name": "Back Training", "date": "Yesterday", "duration": "50 min"},
+      {"name": "Leg Day", "date": "2 days ago", "duration": "60 min"},
+    ];
+
+    return CardShell(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Expanded(
+                child: Text(
+                  'Recent Workouts',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+              Icon(Icons.history, color: Color(0xFF009B87)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...workouts.map((w) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD9FBF2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.fitness_center, color: Color(0xFF04A98E)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          w["name"]!,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          w["date"]!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    w["duration"]!,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF009B87),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList()
         ],
       ),
     );

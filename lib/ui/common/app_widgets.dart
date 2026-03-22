@@ -123,8 +123,8 @@ class BottomNav extends StatelessWidget {
         unselectedItemColor: inactive,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.fitness_center_rounded), label: 'Workouts'),
+          BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'History'),
           BottomNavigationBarItem(
             icon: Icon(Icons.sports_gymnastics),
             label: "Exercises",

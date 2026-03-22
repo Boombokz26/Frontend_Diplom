@@ -117,4 +117,51 @@ class WorkoutService {
 
   }
 
+  Future<int> startWorkout(int planId) async {
+    final res = await dio.post("/sessions/start/$planId/");
+    return res.data["session_id"];
+  }
+
+  Future<Map<String, dynamic>> getSession(int sessionId) async {
+    final res = await dio.get("/sessions/$sessionId/");
+    return res.data;
+  }
+
+  Future<void> completeSet(int setId) async {
+    await dio.patch("/sets/$setId/complete/");
+  }
+
+  Future<void> uncompleteSet(int setId) async {
+    await dio.patch("/sets/$setId/uncomplete/");
+  }
+
+  Future<void> updateSet({
+    required int setId,
+    int? reps,
+    int? weight,
+  }) async {
+    await dio.patch(
+      "/sets/$setId/update/",
+      data: {
+        if (reps != null) "reps": reps,
+        if (weight != null) "weight": weight,
+      },
+    );
+  }
+
+  Future<void> finishWorkout(int sessionId) async {
+    await dio.patch("/sessions/$sessionId/finish/");
+  }
+
+  Future<int?> getActiveSession() async {
+    final res = await dio.get("/sessions/active/");
+    return res.data["session_id"];
+  }
+
+  Future<List<dynamic>> getWorkoutHistory() async {
+    final res = await dio.get("/workouts/history/");
+    return res.data;
+  }
+
+
 }
