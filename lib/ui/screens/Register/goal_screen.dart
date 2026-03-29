@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-import '../common/onboarding_progress.dart';
-import '../../models/onboarding_data.dart';
-import '../../app/home_shell.dart';
-import '../../services/goals_service.dart';
+import '../../../services/auth_service.dart';
+import '../../common/onboarding_progress.dart';
+import '../../../models/onboarding_data.dart';
+import '../../../app/home_shell.dart';
+import '../../../services/goals_service.dart';
 
 class GoalScreen extends StatefulWidget {
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/home_shell.dart';
 import '../common/app_widgets.dart';
-import 'register_screen.dart';
+import 'Register/register_screen.dart';
 import '../../services/auth_service.dart';
 
 

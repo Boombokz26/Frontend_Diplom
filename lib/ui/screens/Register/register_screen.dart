@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../common/app_widgets.dart';
-import '../../services/auth_service.dart';
+import '../../common/app_widgets.dart';
+import '../../../services/auth_service.dart';
 import 'height_screen.dart';
-import '../common/onboarding_progress.dart';
-import '../../models/onboarding_data.dart';
+import '../../common/onboarding_progress.dart';
+import '../../../models/onboarding_data.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,21 +20,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final confirmPasswordController = TextEditingController();
   final auth = AuthService();
 
+  String? emailError;
+  String? passwordError;
+  String? confirmPasswordError;
+
+  bool passwordVisible = false;
+  bool confirmPasswordVisible = false;
+
+  bool isTypingEmail = false;
+  bool isTypingPassword = false;
+
   bool isValidPassword(String password) {
     final regex = RegExp(r'^(?=.*[A-Z]).{6,}$');
     return regex.hasMatch(password);
   }
+
   bool isValidEmail(String email) {
     final regex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
     return regex.hasMatch(email);
   }
-  void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+
+  void validateFields() {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    setState(() {
+      emailError = isValidEmail(email)
+          ? null
+          : "Invalid email format";
+
+      passwordError = isValidPassword(password)
+          ? null
+          : "Must be 6+ chars and include 1 uppercase";
+
+      confirmPasswordError = password == confirmPassword
+          ? null
+          : "Passwords do not match";
+    });
   }
 
   void register() {
@@ -44,23 +67,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final password = passwordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      showError("All fields must be filled");
-      return;
-    }
+    validateFields();
 
-    if (password != confirmPassword) {
-      showError("Passwords do not match");
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      showError("Enter valid email");
-      return;
-    }
-
-    if (!isValidPassword(password)) {
-      showError("Password must contain at least 6 characters and 1 capital letter");
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        emailError != null ||
+        passwordError != null ||
+        confirmPasswordError != null) {
       return;
     }
 
@@ -81,8 +96,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 60, 18, 18),
+        padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
         children: [
 
           const Text(
@@ -127,8 +150,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextField(
                   controller: emailController,
-                  decoration: const InputDecoration(
+                  onTap: () {
+                    setState(() => isTypingEmail = true);
+                  },
+                  onChanged: (_) {
+                    validateFields();
+                  },
+                  decoration: InputDecoration(
                     labelText: "Email",
+                    helperText: !isTypingEmail
+                        ? "example@email.com"
+                        : null,
+                    errorText: isTypingEmail ? emailError : null,
                   ),
                 ),
 
@@ -136,19 +169,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextField(
                   controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: !passwordVisible,
+                  onTap: () {
+                    setState(() => isTypingPassword = true);
+                  },
+                  onChanged: (_) {
+                    validateFields();
+                  },
+                  decoration: InputDecoration(
                     labelText: "Password",
+                    helperText: !isTypingPassword
+                        ? "6+ characters, at least 1 uppercase" : null,
+                    errorText: isTypingPassword ? passwordError : null,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        passwordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          passwordVisible = !passwordVisible;
+                        });
+                      },
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 26),
+                const SizedBox(height: 18),
 
                 TextField(
                   controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: !confirmPasswordVisible,
+                  onChanged: (_) => validateFields(),
+                  decoration: InputDecoration(
                     labelText: "Confirm Password",
+                    errorText: confirmPasswordError,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        confirmPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          confirmPasswordVisible =
+                          !confirmPasswordVisible;
+                        });
+                      },
+                    ),
                   ),
                 ),
 

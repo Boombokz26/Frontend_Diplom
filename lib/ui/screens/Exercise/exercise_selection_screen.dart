@@ -101,7 +101,6 @@ class _ExerciseSelectionScreenState
             ),
           ),
 
-          /// LIST
           Expanded(
             child: ListView.builder(
 

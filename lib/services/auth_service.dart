@@ -19,9 +19,11 @@ class AuthService {
       print("LOGIN RESPONSE:");
       print(response.data);
 
-      final token = response.data["access"];
+      final access = response.data["access"];
+      final refresh = response.data["refresh"];
 
-      await TokenStorage.saveToken(token);
+      await TokenStorage.saveToken(access);
+      await TokenStorage.saveRefresh(refresh);
       await TokenStorage.saveEmail(email);
 
       return true;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/workout_service.dart';
 import '../common/app_widgets.dart';
-import 'workout_details_screen.dart';
+import 'plans/workout_details_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -30,9 +30,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
-  Color getColor(double volume) {
-    if (volume > 4000) return Colors.green;
-    if (volume > 2000) return Colors.orange;
+  double getProgress(Map w) {
+    int total = 0;
+    int done = 0;
+
+    for (var ex in w["exercises"]) {
+      for (var set in ex["sets"]) {
+        total++;
+        if (set["is_completed"] == true) done++;
+      }
+    }
+
+    if (total == 0) return 0;
+    return done / total;
+  }
+
+  Color getColor(double progress) {
+    if (progress > 0.8) return Colors.green;
+    if (progress > 0.5) return Colors.orange;
     return Colors.redAccent;
   }
 
@@ -85,8 +100,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
               itemCount: data.length,
               itemBuilder: (context, i) {
                 final w = data[i];
-                final volume = (w["total_volume"] ?? 0).toDouble();
-                final color = getColor(volume);
+                final progress = getProgress(w);
+                final percent = (progress * 100).toInt();
+                final color = getColor(progress);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 14),
@@ -136,11 +152,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 ),
                               ),
                               Pill(
-                                text: "${volume.toInt()} kg",
+                                text: "$percent%",
                                 bg: color.withOpacity(.15),
                                 fg: color,
                               )
                             ],
+                          ),
+                          const SizedBox(height: 10),
+                          LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: Colors.grey.shade300,
+                            color: color,
+                            minHeight: 6,
                           ),
                           const SizedBox(height: 10),
                           Row(

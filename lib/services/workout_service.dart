@@ -4,20 +4,15 @@ class WorkoutService {
 
   final dio = ApiClient().dio;
 
-
   Future<List<dynamic>> getWorkoutPlans() async {
-
     final response = await dio.get("/plans/");
     return response.data;
-
   }
-
 
   Future<void> createWorkoutPlan({
     required String name,
     required int goal,
   }) async {
-
     await dio.post(
       "/plans/",
       data: {
@@ -25,97 +20,97 @@ class WorkoutService {
         "goal": goal,
       },
     );
-
   }
-
 
   Future<List<dynamic>> getPlanExercises(int planId) async {
-
     final res = await dio.get("/plans/$planId/");
     return res.data["exercises"];
-
   }
-
 
   Future<void> addExercise({
     required int planId,
     required int exerciseId,
-    int sets = 3,
-    int reps = 10,
-    int targetWeight = 0,
-    int dayOfWeek = 1,
+    required List<Map<String, dynamic>> sets,
+    int? dayOfWeek,
   }) async {
-
     await dio.post(
       "/plans/$planId/add_exercise/",
       data: {
         "exercise_id": exerciseId,
         "sets": sets,
-        "reps": reps,
-        "target_weight": targetWeight,
-        "day_of_week": dayOfWeek
+        if (dayOfWeek != null) "day_of_week": dayOfWeek,
       },
     );
-
   }
-
-
-  Future<void> updateExercise({
-    required int planId,
-    required int planExerciseId,
-    int? sets,
-    int? reps,
-    int? targetWeight,
-  }) async {
-
-    await dio.patch(
-      "/plans/$planId/update_exercise/",
-      data: {
-        "plan_exercise_id": planExerciseId,
-        if (sets != null) "sets": sets,
-        if (reps != null) "reps": reps,
-        if (targetWeight != null) "target_weight": targetWeight,
-      },
-    );
-
-  }
-
 
   Future<void> removeExercise({
     required int planId,
     required int planExerciseId,
   }) async {
-
     await dio.delete(
       "/plans/$planId/remove_exercise/",
       data: {
         "plan_exercise_id": planExerciseId
       },
     );
-
   }
-
 
   Future<void> reorderExercises({
     required int planId,
     required List<int> order,
   }) async {
-
     await dio.post(
       "/plans/$planId/reorder_exercises/",
       data: {
         "order": order
       },
     );
-
   }
-
 
   Future<void> clonePlan(int id) async {
-
     await dio.post("/plans/$id/clone/");
-
   }
+
+  /// 🔥 PLAN SETS
+
+  Future<void> updatePlanSet({
+    required int setId,
+    int? reps,
+    int? weight,
+    int? durationSec,
+  }) async {
+    await dio.patch(
+      "/plan-sets/$setId/",
+      data: {
+        if (reps != null) "reps": reps,
+        if (weight != null) "weight": weight,
+        if (durationSec != null) "duration_sec": durationSec,
+      },
+    );
+  }
+
+  Future<int> addPlanSet({
+    required int planExerciseId,
+    int reps = 10,
+    int weight = 0,
+  }) async {
+
+    final res = await dio.post(
+      "/plan-exercises/$planExerciseId/add_set/",
+      data: {
+        "reps": reps,
+        "weight": weight,
+      },
+    );
+
+    return res.data["set_id"];
+  }
+
+  Future<void> deletePlanSet(int setId) async {
+    await dio.delete("/plan-sets/$setId/");
+  }
+
+
 
   Future<int> startWorkout(int planId) async {
     final res = await dio.post("/sessions/start/$planId/");
@@ -161,6 +156,14 @@ class WorkoutService {
   Future<List<dynamic>> getWorkoutHistory() async {
     final res = await dio.get("/workouts/history/");
     return res.data;
+  }
+
+  Future<void> addSessionSet(int sessionExerciseId) async {
+    await dio.post("/session-sets/$sessionExerciseId/add/");
+  }
+
+  Future<void> deleteSessionSet(int setId) async {
+    await dio.delete("/session-sets/$setId/delete/");
   }
 
 

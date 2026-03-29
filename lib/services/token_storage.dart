@@ -24,4 +24,16 @@ class TokenStorage {
     return await _storage.read(key: "user_email");
   }
 
+  static Future<void> saveRefresh(String token) async {
+    await _storage.write(key: "refresh_token", value: token);
+  }
+
+  static Future<String?> getRefresh() async {
+    return await _storage.read(key: "refresh_token");
+  }
+
+  static Future<void> clearAll() async {
+    await _storage.deleteAll();
+  }
+
 }

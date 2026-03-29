@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../common/app_widgets.dart';
+import '../../common/app_widgets.dart';
 
 class WorkoutDetailsScreen extends StatelessWidget {
   final Map workout;

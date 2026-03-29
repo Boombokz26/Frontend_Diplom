@@ -140,7 +140,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
 
           const SizedBox(height: 20),
 
-          // SEARCH
+
           TextField(
             decoration: InputDecoration(
               hintText: "Search exercises...",
@@ -161,13 +161,13 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
 
           const SizedBox(height: 18),
 
-          // FILTERS
+
           Row(
             children: [
 
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  isExpanded: true, // ✅ ВАЖНО
+                  isExpanded: true,
                   hint: const Text("Category"),
                   value: selectedCategory,
                   decoration: InputDecoration(
@@ -188,7 +188,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         value: c["id"].toString(),
                         child: Text(
                           c["name"],
-                          overflow: TextOverflow.ellipsis, // ✅
+                          overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }).toList(),
@@ -227,7 +227,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         value: g["id"].toString(),
                         child: Text(
                           g["name"],
-                          overflow: TextOverflow.ellipsis, // ✅
+                          overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }).toList(),

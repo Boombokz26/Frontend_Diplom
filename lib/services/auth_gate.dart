@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/token_storage.dart';
-import '../ui/screens/login_screen.dart';
+import '../../services/token_storage.dart';
+import '../../ui/screens/login_screen.dart';
 import 'package:untitled1/app/home_shell.dart';
+import '../../services/api_client.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -21,17 +22,42 @@ class _AuthGateState extends State<AuthGate> {
     checkToken();
   }
 
-  void checkToken() async {
-
+  Future<void> checkToken() async {
     final token = await TokenStorage.getToken();
 
-    if (!mounted) return;
 
-    setState(() {
-      loggedIn = token != null;
-      loading = false;
-    });
+    if (token == null) {
+      if (!mounted) return;
 
+      setState(() {
+        loggedIn = false;
+        loading = false;
+      });
+      return;
+    }
+
+
+    try {
+      await ApiClient().dio.get("/profile/");
+
+      if (!mounted) return;
+
+      setState(() {
+        loggedIn = true;
+        loading = false;
+      });
+
+    } catch (e) {
+      /// ❌ токен невалидный
+      await TokenStorage.clearToken();
+
+      if (!mounted) return;
+
+      setState(() {
+        loggedIn = false;
+        loading = false;
+      });
+    }
   }
 
   @override

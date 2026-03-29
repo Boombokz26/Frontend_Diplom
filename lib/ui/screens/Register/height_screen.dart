@@ -1,38 +1,35 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-import '../common/onboarding_progress.dart';
-import 'goal_screen.dart';
-import '../../models/onboarding_data.dart';
+import 'weight_screen.dart';
+import '../../common/onboarding_progress.dart';
+import '../../../models/onboarding_data.dart';
 
-
-class WeightScreen extends StatefulWidget {
+class HeightScreen extends StatefulWidget {
 
   final OnboardingData data;
 
-  const WeightScreen({
+  const HeightScreen({
     super.key,
     required this.data,
   });
 
   @override
-  State<WeightScreen> createState() => _WeightScreenState();
+  State<HeightScreen> createState() => _HeightScreenState();
 }
 
-class _WeightScreenState extends State<WeightScreen> {
+class _HeightScreenState extends State<HeightScreen> {
 
-  final auth = AuthService();
-  int selectedWeight = 70;
+  int selectedHeight = 170;
 
   @override
   Widget build(BuildContext context) {
 
-    final weights = List.generate(271, (i) => i + 30);
+    final heights = List.generate(181, (i) => i + 50);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F9),
 
       appBar: AppBar(
-        title: const Text("Your Weight"),
+        title: const Text("Your Height"),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -42,18 +39,18 @@ class _WeightScreenState extends State<WeightScreen> {
 
           const SizedBox(height: 20),
 
+          const OnboardingProgress(
+            step: 2,
+            total: 4,
+          ),
+
           const Text(
-            "Select your weight",
+            "Select your height",
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: Color(0xFF0F172A),
             ),
-          ),
-
-          const OnboardingProgress(
-            step: 3,
-            total: 4,
           ),
 
           const SizedBox(height: 30),
@@ -71,20 +68,20 @@ class _WeightScreenState extends State<WeightScreen> {
 
                   onSelectedItemChanged: (index) {
                     setState(() {
-                      selectedWeight = weights[index];
+                      selectedHeight = heights[index];
                     });
                   },
 
                   childDelegate: ListWheelChildBuilderDelegate(
-                    childCount: weights.length,
+                    childCount: heights.length,
                     builder: (context, index) {
 
-                      final weight = weights[index];
-                      final selected = weight == selectedWeight;
+                      final height = heights[index];
+                      final selected = height == selectedHeight;
 
                       return Center(
                         child: Text(
-                          "$weight kg",
+                          "$height cm",
                           style: TextStyle(
                             fontSize: selected ? 36 : 24,
                             fontWeight: FontWeight.w700,
@@ -123,12 +120,14 @@ class _WeightScreenState extends State<WeightScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF009B87),
                 ),
-                onPressed: () async {
-                  widget.data.weight = selectedWeight.toDouble();
+                onPressed: () {
+
+
+                  widget.data.height = selectedHeight.toDouble();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => GoalScreen(
+                      builder: (_) => WeightScreen(
                         data: widget.data,
                       ),
                     ),
@@ -136,7 +135,7 @@ class _WeightScreenState extends State<WeightScreen> {
 
                 },
                 child: const Text(
-                  "Finish",
+                  "Next",
                   style: TextStyle(fontSize: 18),
                 ),
               ),
