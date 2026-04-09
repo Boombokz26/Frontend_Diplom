@@ -48,7 +48,7 @@ class _AuthGateState extends State<AuthGate> {
       });
 
     } catch (e) {
-      /// ❌ токен невалидный
+
       await TokenStorage.clearToken();
 
       if (!mounted) return;

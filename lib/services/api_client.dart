@@ -13,7 +13,7 @@ class ApiClient {
   ApiClient._internal() {
     dio = Dio(
       BaseOptions(
-        baseUrl: "http://10.0.2.2:8000/api",
+        baseUrl: "https://petprojectbackend-production.up.railway.app/api",
         headers: {
           "Content-Type": "application/json",
         },

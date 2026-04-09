@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../services/analytics_service.dart';
-
+import 'package:intl/intl.dart';
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
 
@@ -22,6 +22,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   List prs = [];
   List exerciseVolume = [];
   List frequency = [];
+  List weight = [];
 
   List progress = [];
   int? selectedExerciseId;
@@ -44,6 +45,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return "Last 6 months";
   }
 
+  String formatLabel(String raw) {
+    try {
+      final date = DateTime.parse(raw);
+      return DateFormat("dd MMM").format(date);
+    } catch (_) {
+      try {
+        return raw;
+      } catch (_) {
+        return raw;
+      }
+    }
+  }
+
   List aggregate(List data, int chunkSize) {
     List result = [];
 
@@ -64,10 +78,64 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return result;
   }
 
+  List aggregateByMonth(List data) {
+    Map<String, List> grouped = {};
+
+    final dayMonthFormat = DateFormat("dd MMM");
+
+    for (var e in data) {
+      final raw = e["label"].toString();
+      DateTime date;
+
+      try {
+        date = DateTime.parse(raw);
+      } catch (_) {
+        try {
+          date = dayMonthFormat.parse(raw);
+        } catch (_) {
+          continue;
+        }
+      }
+
+      final key = "${date.year}-${date.month.toString().padLeft(2, '0')}";
+
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(e);
+    }
+
+    final sortedKeys = grouped.keys.toList()..sort();
+
+    return sortedKeys.map((k) {
+      final chunk = grouped[k]!;
+
+      final sum = chunk.fold(
+        0.0,
+            (s, e) => s + (e["value"] as num).toDouble(),
+      );
+      return {
+        "label": k,
+        "value": sum,
+      };
+    }).toList();
+  }
+
+  String formatMonth(String ym) {
+    final parts = ym.split("-");
+    final month = int.parse(parts[1]);
+
+    const months = [
+      "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    return months[month];
+  }
+
   Future<void> load() async {
     setState(() => loading = true);
 
     final data = await service.getAnalytics(getPeriod());
+    final weightData = await service.getWeightAnalytics(getPeriod());
 
     setState(() {
       stats = data["stats"];
@@ -77,6 +145,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       prs = data["prs"];
       exerciseVolume = data["exercise_volume"];
       frequency = data["frequency"];
+
+      weight = weightData["data"] ?? [];
 
       if (prs.isNotEmpty) {
         if (!prs.any((e) => e["exercise_id"] == selectedExerciseId)) {
@@ -98,6 +168,72 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     setState(() {
       progress = data;
     });
+  }
+
+  List aggregateWeight(List data, int chunkSize) {
+    List result = [];
+
+    for (int i = 0; i < data.length; i += chunkSize) {
+      final chunk = data.skip(i).take(chunkSize).toList();
+
+      result.add({
+        "label": chunk.last["label"],
+        "value": chunk.last["value"],
+      });
+    }
+
+    return result;
+  }
+  List processData(List data) {
+    if (selected == 0) {
+
+      return data;
+    } else if (selected == 1) {
+
+      return aggregateByWeek(data);
+    } else {
+
+      return aggregateByMonth(data);
+    }
+  }
+
+  List aggregateByWeek(List data) {
+    Map<String, List> grouped = {};
+
+    final dayMonthFormat = DateFormat("dd MMM");
+
+    for (var e in data) {
+      final raw = e["label"].toString();
+
+      DateTime date;
+
+      try {
+        date = DateTime.parse(raw);
+      } catch (_) {
+        date = dayMonthFormat.parse(raw);
+      }
+
+
+      final weekStart = date.subtract(Duration(days: date.weekday - 1));
+      final key = "${weekStart.year}-${weekStart.month}-${weekStart.day}";
+
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(e);
+    }
+
+    final sortedKeys = grouped.keys.toList()..sort();
+
+    return sortedKeys.map((k) {
+      final chunk = grouped[k]!;
+
+
+      final last = chunk.last;
+
+      return {
+        "label": last["label"],
+        "value": last["value"],
+      };
+    }).toList();
   }
 
   @override
@@ -122,6 +258,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               _stats(),
               const SizedBox(height: 20),
               _card("Volume", _lineChart(volume), "${stats["total_volume"]} kg"),
+              _card("Weight Progress", _weightChart(), ""),
               _card("Duration", _barChart(duration), "${stats["total_duration"]} min"),
               _card("Workout Frequency", _frequencyChart(), ""),
               _card("Exercise Volume", _exerciseChart(), ""),
@@ -283,6 +420,58 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
+  Widget _weightChart() {
+    List processed = processData(weight);
+
+
+    if (processed.isEmpty) {
+      return const SizedBox(
+        height: 140,
+        child: Center(child: Text("No weight data")),
+      );
+    }
+
+    final spots = List.generate(
+      processed.length,
+          (i) => FlSpot(
+        i.toDouble(),
+        (processed[i]["value"] as num).toDouble(),
+      ),
+    );
+
+    final labels = processed.map((e) => e["label"].toString()).toList();
+
+    final values = spots.map((e) => e.y).toList();
+    final minY = values.reduce((a, b) => a < b ? a : b);
+    final maxY = values.reduce((a, b) => a > b ? a : b);
+
+    return SizedBox(
+      height: 160,
+      child: LineChart(
+        LineChartData(
+          minX: 0,
+          maxX: (spots.length - 1).toDouble(),
+          minY: minY * 0.95,
+          maxY: maxY * 1.05,
+          gridData: FlGridData(show: true, drawVerticalLine: false),
+          borderData: FlBorderData(show: false),
+          titlesData: _titles(labels, processed),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              gradient: const LinearGradient(
+                colors: [Colors.green, Colors.teal],
+              ),
+              barWidth: 4,
+              dotData: const FlDotData(show: true),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _progressChart() {
     if (progress.isEmpty) {
       return const SizedBox(height: 140, child: Center(child: Text("No data")));
@@ -364,13 +553,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _lineChart(List data) {
-    List processed = data;
+    List processed = processData(data);
 
-    if (selected == 1) {
-      processed = aggregate(data, 3);
-    } else if (selected == 2) {
-      processed = aggregate(data, 7);
-    }
+
 
     if (processed.isEmpty) {
       return const SizedBox(height: 140, child: Center(child: Text("No data")));
@@ -409,13 +594,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _barChart(List data) {
-    List processed = data;
+    List processed = processData(data);
 
-    if (selected == 1) {
-      processed = aggregate(data, 3);
-    } else if (selected == 2) {
-      processed = aggregate(data, 7);
-    }
 
     if (processed.isEmpty) {
       return const SizedBox(height: 140, child: Center(child: Text("No data")));
@@ -449,13 +629,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _frequencyChart() {
-    List processed = frequency;
+    List processed = processData(frequency);
 
-    if (selected == 1) {
-      processed = aggregate(frequency, 3);
-    } else if (selected == 2) {
-      processed = aggregate(frequency, 7);
+    if (processed.isEmpty) {
+      return const SizedBox(height: 120, child: Center(child: Text("No data")));
     }
+
 
     if (processed.isEmpty) {
       return const SizedBox(height: 120, child: Center(child: Text("No data")));
@@ -647,14 +826,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             int i = value.toInt();
             if (i < 0 || i >= labels.length) return const SizedBox();
 
-            final text = labels[i];
+            final text = selected == 2
+                ? formatMonth(labels[i])
+                : formatLabel(labels[i]);
 
             return Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Transform.rotate(
                 angle: -0.5,
                 child: Text(
-                  text.length > 5 ? text.substring(0, 5) : text,
+                  text,
                   style: const TextStyle(fontSize: 9, color: Colors.grey),
                 ),
               ),

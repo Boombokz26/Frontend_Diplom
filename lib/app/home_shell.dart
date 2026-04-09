@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../ui/common/app_widgets.dart';
-import '../ui/screens/home_dashboard_screen.dart';
 import '../ui/screens/plans/workouts_screen.dart';
 import '../ui/screens/Statistics/stats_screen.dart';
 import '../ui/screens/profile_screen.dart';

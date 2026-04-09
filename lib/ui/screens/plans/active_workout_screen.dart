@@ -18,6 +18,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   bool isLoading = true;
   Duration duration = Duration.zero;
 
+  bool isPaused = false;
+
   @override
   void initState() {
     super.initState();
@@ -30,9 +32,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return false;
 
-      setState(() {
-        duration += const Duration(seconds: 1);
-      });
+      if (!isPaused) {
+        setState(() {
+          duration += const Duration(seconds: 1);
+        });
+      }
 
       return true;
     });
@@ -69,6 +73,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   Future toggleSet(Map set) async {
+    if (isPaused) return;
+
     if (set["is_completed"]) {
       await workoutService.uncompleteSet(set["set_id"]);
     } else {
@@ -86,16 +92,20 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   Future addSet(int sessionExerciseId) async {
+    if (isPaused) return;
     await workoutService.addSessionSet(sessionExerciseId);
     await loadSession();
   }
 
   Future deleteSet(int setId) async {
+    if (isPaused) return;
     await workoutService.deleteSessionSet(setId);
     await loadSession();
   }
 
   void editSetDialog(Map set) {
+    if (isPaused) return;
+
     final repsController =
     TextEditingController(text: set["reps"]?.toString() ?? "");
     final weightController =
@@ -193,6 +203,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   Future finishWorkout() async {
+
+    if (isPaused) {
+      setState(() {
+        isPaused = false;
+      });
+    }
+
     await workoutService.finishWorkout(widget.sessionId);
 
     final history = await workoutService.getWorkoutHistory();
@@ -255,7 +272,24 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      isPaused = !isPaused;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: Text(isPaused ? "Resume" : "Pause"),
+                ),
+
+                const SizedBox(height: 16),
+
                 LinearProgressIndicator(value: progress),
                 const SizedBox(height: 6),
                 Text(
@@ -265,6 +299,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               ],
             ),
           ),
+
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -316,6 +351,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               },
             ),
           ),
+
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services//auth_gate.dart';
-import '../services/token_storage.dart';
-import 'home_shell.dart';
-import '../ui/screens/login_screen.dart';
 import '../../main.dart';
 
 class FitnessApp extends StatelessWidget {

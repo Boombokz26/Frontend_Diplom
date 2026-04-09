@@ -15,10 +15,6 @@ class AuthService {
           "password": password,
         },
       );
-
-      print("LOGIN RESPONSE:");
-      print(response.data);
-
       final access = response.data["access"];
       final refresh = response.data["refresh"];
 

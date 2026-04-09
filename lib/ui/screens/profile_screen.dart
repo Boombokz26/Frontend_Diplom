@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../services/settings_service.dart';
 import '../../services/token_storage.dart';
 import '../common/app_widgets.dart';
 import '../common/top_titles.dart';
 import 'login_screen.dart';
 import '../../services/profile_service.dart';
+import 'weight_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,131 +19,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool loading = true;
 
-  String goal = "Build muscle";
-  String units = "Kilograms (kg)";
-  String theme = "Light";
-
+  String goal = "";
   String name = "";
   String email = "";
+  double? weight;
 
   @override
   void initState() {
     super.initState();
-    loadSettings();
     loadProfile();
   }
 
   void loadProfile() async {
-
     final data = await profileService.getProfile();
 
     setState(() {
       name = data["name"];
       email = data["email"];
-      goal = data["goal"];
+      goal = data["goal"] ?? "No goal";
+      weight = data["weight"] != null
+          ? double.tryParse(data["weight"].toString())
+          : null;
       loading = false;
     });
-
-  }
-
-  void loadSettings() async {
-    goal = await SettingsService.getGoal();
-    units = await SettingsService.getUnits();
-    theme = await SettingsService.getTheme();
-    setState(() {});
   }
 
   void changeGoal() async {
+    final goals = [
+      {"id": 4, "name": "Build muscle"},
+      {"id": 5, "name": "Lose weight"},
+      {"id": 6, "name": "Gain strength"},
+    ];
 
     final result = await showModalBottomSheet(
       context: context,
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-
-          ListTile(
-            title: const Text("Build muscle"),
-            onTap: () => Navigator.pop(context, "Build muscle"),
-          ),
-
-          ListTile(
-            title: const Text("Lose weight"),
-            onTap: () => Navigator.pop(context, "Lose weight"),
-          ),
-
-          ListTile(
-            title: const Text("Gain strength"),
-            onTap: () => Navigator.pop(context, "Gain strength"),
-          ),
-
-        ],
+        children: goals.map((g) {
+          return ListTile(
+            title: Text(g["name"] as String),
+            onTap: () => Navigator.pop(context, g),
+          );
+        }).toList(),
       ),
     );
 
     if (result != null) {
-      await SettingsService.setGoal(result);
-      setState(() => goal = result);
+      await profileService.updateGoal(result["id"] as int);
+      setState(() => goal = result["name"] as String);
     }
   }
 
-  void changeUnits() async {
+  void changeWeight() async {
+    final controller = TextEditingController(
+      text: weight?.toString() ?? "",
+    );
 
-    final result = await showModalBottomSheet(
+    final result = await showDialog(
       context: context,
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-
-          ListTile(
-            title: const Text("Kilograms (kg)"),
-            onTap: () => Navigator.pop(context, "Kilograms (kg)"),
+      builder: (_) => AlertDialog(
+        title: const Text("Enter weight"),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            hintText: "e.g. 82.5",
           ),
-
-          ListTile(
-            title: const Text("Pounds (lbs)"),
-            onTap: () => Navigator.pop(context, "Pounds (lbs)"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
-
+          ElevatedButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              if (value != null) {
+                Navigator.pop(context, value);
+              }
+            },
+            child: const Text("Save"),
+          ),
         ],
       ),
     );
 
     if (result != null) {
-      await SettingsService.setUnits(result);
-      setState(() => units = result);
-    }
-  }
-
-  void changeTheme() async {
-
-    final result = await showModalBottomSheet(
-      context: context,
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-
-          ListTile(
-            title: const Text("Light"),
-            onTap: () => Navigator.pop(context, "Light"),
-          ),
-
-          ListTile(
-            title: const Text("Dark"),
-            onTap: () => Navigator.pop(context, "Dark"),
-          ),
-
-        ],
-      ),
-    );
-
-    if (result != null) {
-      await SettingsService.setTheme(result);
-      setState(() => theme = result);
+      await profileService.addWeight(result);
+      setState(() => weight = result);
     }
   }
 
   void logout() async {
-
     await TokenStorage.clearToken();
 
     Navigator.pushAndRemoveUntil(
@@ -186,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           iconBg: const Color(0xFFD9FBF2),
           iconColor: const Color(0xFF009B87),
           icon: Icons.gps_fixed_rounded,
-          title: 'Goals',
+          title: 'Goal',
           subtitle: goal,
           onTap: changeGoal,
         ),
@@ -194,23 +161,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 12),
 
         SettingsTile(
-          iconBg: const Color(0xFFF1E6FF),
-          iconColor: const Color(0xFF8E2BFF),
-          icon: Icons.scale_rounded,
-          title: 'Units',
-          subtitle: units,
-          onTap: changeUnits,
+          iconBg: const Color(0xFFFFF4DE),
+          iconColor: const Color(0xFFFF8A00),
+          icon: Icons.monitor_weight_rounded,
+          title: 'Weight',
+          subtitle: weight != null ? "${weight} kg" : "Not set",
+          onTap: changeWeight,
         ),
+
 
         const SizedBox(height: 12),
 
         SettingsTile(
-          iconBg: const Color(0xFFDCEBFF),
-          iconColor: const Color(0xFF2563EB),
-          icon: Icons.dark_mode_rounded,
-          title: 'Theme',
-          subtitle: theme,
-          onTap: changeTheme,
+          iconBg: const Color(0xFFE0E7FF),
+          iconColor: const Color(0xFF4F46E5),
+          icon: Icons.bar_chart_rounded,
+          title: 'Weight history',
+          subtitle: 'View & edit all records',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const WeightHistoryScreen(),
+              ),
+            );
+          },
         ),
 
         const SizedBox(height: 18),

@@ -24,7 +24,14 @@ class ExerciseService {
       queryParameters: params,
     );
 
-    return res.data;
+
+    return (res.data as List).map((e) {
+      return {
+        ...e,
+        "DifficultyLevel": e["DifficultyLevel"] ?? "",
+        "equipment": e["equipment"] ?? [],
+      };
+    }).toList();
   }
 
 }

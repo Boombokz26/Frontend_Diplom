@@ -5,6 +5,7 @@ import '../../common/top_titles.dart';
 import '../../../services/exercise_service.dart';
 import '../../../services/category_service.dart';
 import '../../../services/goals_service.dart';
+import '../../../services/profile_service.dart';
 
 class ExercisesScreen extends StatefulWidget {
   const ExercisesScreen({super.key});
@@ -14,10 +15,10 @@ class ExercisesScreen extends StatefulWidget {
 }
 
 class _ExercisesScreenState extends State<ExercisesScreen> {
-
   final exerciseService = ExerciseService();
   final categoryService = CategoryService();
   final goalService = GoalsService();
+  final profileService = ProfileService();
 
   List exercises = [];
   List goals = [];
@@ -28,6 +29,8 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   String? selectedCategory;
   String? selectedGoal;
 
+  String? userGoalName;
+
   String search = "";
 
   @override
@@ -37,22 +40,21 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   }
 
   Future loadInitialData() async {
-
     final ex = await exerciseService.getExercises();
     final g = await goalService.getGoals();
     final c = await categoryService.getCategories();
+    final profile = await profileService.getProfile();
 
     setState(() {
       exercises = ex;
       goals = g;
       categories = c;
+      userGoalName = profile["goal_name"] ?? profile["goal"];
       loading = false;
     });
-
   }
 
   Future loadExercises() async {
-
     final res = await exerciseService.getExercises(
       categoryId: selectedCategory,
       goalId: selectedGoal,
@@ -61,11 +63,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     setState(() {
       exercises = res;
     });
-
   }
 
   List filteredExercises() {
-
     if (search.isEmpty) return exercises;
 
     return exercises.where((e) {
@@ -74,17 +74,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           .toLowerCase()
           .contains(search.toLowerCase());
     }).toList();
-
   }
 
   Map<String, List> groupedExercises() {
-
     final filtered = filteredExercises();
 
     Map<String, List> groups = {};
 
     for (var e in filtered) {
-
       final category = e["category_name"] ?? "Other";
 
       if (!groups.containsKey(category)) {
@@ -92,16 +89,22 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       }
 
       groups[category]!.add(e);
-
     }
 
     return groups;
+  }
 
+  bool isExerciseRecommended(Map e) {
+    if (userGoalName == null) return false;
+
+    final exerciseGoals = e["goals"];
+    if (exerciseGoals is! List) return false;
+
+    return exerciseGoals.contains(userGoalName);
   }
 
   @override
   Widget build(BuildContext context) {
-
     if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -109,11 +112,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     final grouped = groupedExercises();
 
     return Scaffold(
-
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF6366F1),
         onPressed: () async {
-
           final created = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -124,23 +125,17 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           if (created == true) {
             loadExercises();
           }
-
         },
         child: const Icon(Icons.add),
       ),
-
       body: ListView(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 80),
         children: [
-
           const TopTitle(
             title: "Exercises",
             subtitle: "Browse exercises by muscle group",
           ),
-
           const SizedBox(height: 20),
-
-
           TextField(
             decoration: InputDecoration(
               hintText: "Search exercises...",
@@ -158,18 +153,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               });
             },
           ),
-
           const SizedBox(height: 18),
-
-
           Row(
             children: [
-
               Expanded(
                 child: DropdownButtonFormField<String>(
                   isExpanded: true,
                   hint: const Text("Category"),
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.grey.shade100,
@@ -201,14 +192,12 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                   },
                 ),
               ),
-
               const SizedBox(width: 12),
-
               Expanded(
                 child: DropdownButtonFormField<String>(
                   isExpanded: true,
                   hint: const Text("Goal"),
-                  value: selectedGoal,
+                  initialValue: selectedGoal,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.grey.shade100,
@@ -240,20 +229,13 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                   },
                 ),
               ),
-
             ],
           ),
-
           const SizedBox(height: 26),
-
-
-
           ...grouped.entries.map((entry) {
-
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Text(
                   entry.key,
                   style: const TextStyle(
@@ -262,11 +244,8 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                     color: Color(0xFF0F172A),
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
                 ...entry.value.map((e) {
-
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 14),
                     child: Container(
@@ -281,31 +260,49 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         boxShadow: [
                           BoxShadow(
                             blurRadius: 10,
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             offset: const Offset(0, 6),
                           )
                         ],
                       ),
                       child: ListTile(
-
                         leading: const Icon(
                           Icons.fitness_center,
                           color: Colors.white,
                         ),
-
-                        title: Text(
-                          e["name"],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                e["name"],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            if (isExerciseRecommended(e))
+                              Row(
+                                children: const [
+                                  Icon(Icons.check_circle,
+                                      color: Colors.white, size: 18),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    "Recommended",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
                         ),
-
                         trailing: const Icon(
                           Icons.chevron_right,
                           color: Colors.white,
                         ),
-
                         onTap: () {
                           Navigator.push(
                             context,
@@ -316,20 +313,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                             ),
                           );
                         },
-
                       ),
                     ),
                   );
-
                 }).toList(),
-
                 const SizedBox(height: 22),
-
               ],
             );
-
           })
-
         ],
       ),
     );

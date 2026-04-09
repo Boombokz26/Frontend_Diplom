@@ -22,6 +22,13 @@ class ExerciseDetailScreen extends StatelessWidget {
       goalsList = goalsRaw;
     }
 
+    final equipmentRaw = exercise["equipment"];
+    List equipmentList = [];
+
+    if (equipmentRaw != null && equipmentRaw is List) {
+      equipmentList = equipmentRaw;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Exercise"),
@@ -41,7 +48,7 @@ class ExerciseDetailScreen extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.deepPurple.withOpacity(0.2),
+                  color: Colors.deepPurple.withValues(alpha: 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -63,7 +70,13 @@ class ExerciseDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          _card(
+            title: "Difficulty",
+            icon: Icons.speed,
+            child: Text(difficulty),
+          ),
+          const SizedBox(height: 16),
           _card(
             title: "Goal",
             icon: Icons.flag,
@@ -75,7 +88,24 @@ class ExerciseDetailScreen extends StatelessWidget {
                 return Chip(
                   label: Text(g.toString()),
                   backgroundColor:
-                  Colors.deepPurple.withOpacity(0.1),
+                  Colors.deepPurple.withValues(alpha: 0.1),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _card(
+            title: "Equipment",
+            icon: Icons.build,
+            child: equipmentList.isEmpty
+                ? const Text("Not specified")
+                : Wrap(
+              spacing: 8,
+              children: equipmentList.map<Widget>((e) {
+                return Chip(
+                  label: Text(e.toString()),
+                  backgroundColor:
+                  Colors.blue.withValues(alpha: 0.1),
                 );
               }).toList(),
             ),
@@ -126,7 +156,7 @@ class ExerciseDetailScreen extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           )
